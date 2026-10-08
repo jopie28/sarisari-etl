@@ -1,0 +1,6 @@
+logs/
+datalake/*
+!datalake/raw/
+!datalake/staged/
+.env
+__pycache__/
