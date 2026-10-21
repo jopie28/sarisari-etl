@@ -1,6 +1,7 @@
 logs/
-datalake/*
-!datalake/raw/
-!datalake/staged/
+datalake/raw/*
+datalake/staged/*
+!datalake/raw/.gitkeep
+!datalake/staged/.gitkeep
 .env
 __pycache__/

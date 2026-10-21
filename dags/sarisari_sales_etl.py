@@ -148,7 +148,7 @@ def sarisari_sales_etl():
         print(f"Loaded {len(df)} staged rows; fact_sales now has {fact_rows} rows")
         return {"batch_id": staged["batch_id"], "rows_loaded": len(df)}
 
-    @task
+    @task(retries=0)
     def quality_check(loaded: dict) -> None:
         """Fail the run loudly if the warehouse breaks a business rule."""
         hook = PostgresHook(postgres_conn_id=DWH_CONN_ID)
@@ -163,6 +163,10 @@ def sarisari_sales_etl():
             "line_total equals quantity x unit_price":
                 "SELECT COUNT(*) = 0 FROM dw.fact_sales "
                 "WHERE line_total <> ROUND(quantity * unit_price, 2)",
+ 	    "no sales dated in the future":
+                "SELECT COUNT(*) = 0 FROM dw.fact_sales f "
+                "JOIN dw.dim_date d USING (date_key) "
+                "WHERE f.batch_id = %(b)s AND d.full_date > CURRENT_DATE",
         }
         failed = [name for name, sql in checks.items()
                   if not hook.get_first(sql, parameters={"b": loaded["batch_id"]})[0]]
